@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>사업 파이프라인 등급 산정</title>
+    <title>수주 파이프라인 정보 제안</title>
     <link rel="stylesheet" href="styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,12 +14,29 @@
   </head>
   <body>
     <div class="page">
-      <header class="page-header">
-        <h1>사업 파이프라인 등급 산정</h1>
+      <header class="page-header page-header--row">
+        <h1>수주 파이프라인 정보 제안</h1>
+        <div class="header-employee">
+          <input
+            type="text"
+            id="employeeIdName"
+            name="employeeIdName"
+            form="rating-form"
+            placeholder="사번/이름"
+            autocomplete="name"
+            aria-label="사번/이름"
+          />
+        </div>
       </header>
 
       <form id="rating-form" class="sheet" autocomplete="on">
         <table class="grid-form">
+          <colgroup>
+            <col class="grid-form-col-label" />
+            <col class="grid-form-col-value" />
+            <col class="grid-form-col-label" />
+            <col class="grid-form-col-value" />
+          </colgroup>
           <tbody>
             <tr>
               <th scope="row" class="label">사업명</th>
@@ -44,7 +61,8 @@
                   <select name="location" id="location" data-grade-key="location">
                     <option value="">선택</option>
                     <option value="A" data-label="서울">서울</option>
-                    <option value="B" data-label="수도권/광역시">수도권/광역시</option>
+                    <option value="B" data-label="수도권">수도권</option>
+                    <option value="B" data-label="광역시">광역시</option>
                     <option value="C" data-label="지방">지방</option>
                   </select>
                 </div>
@@ -53,7 +71,7 @@
                     type="text"
                     name="locationDetail"
                     id="locationDetail"
-                    placeholder="구체적 위치·메모 등"
+                    placeholder="도로명 주소 혹은 지번 기재"
                     autocomplete="address-line2"
                   />
                 </div>
@@ -85,16 +103,9 @@
                   <option value="C" data-label="기타">기타</option>
                 </select>
               </td>
-              <th scope="row" class="label narrow">경쟁사</th>
+              <th scope="row" class="label narrow">대지 면적</th>
               <td class="value">
-                <input type="text" name="competitor" placeholder="경쟁사" />
-              </td>
-            </tr>
-
-            <tr>
-              <th scope="row" class="label">도입시설<br />(프로그램)</th>
-              <td class="value full" colspan="3">
-                <input type="text" name="facilities" placeholder="도입시설(프로그램)을 입력하세요" />
+                <input type="text" name="siteArea" placeholder="대지 면적" />
               </td>
             </tr>
 
@@ -131,6 +142,22 @@
               </td>
             </tr>
 
+            <tr>
+              <th scope="row" class="label">경쟁사</th>
+              <td class="value">
+                <input type="text" name="competitor" placeholder="경쟁사" />
+              </td>
+              <th scope="row" class="label narrow">수주 가능성</th>
+              <td class="value">
+                <select name="orderPossibility" id="orderPossibility" data-grade-key="orderPossibility">
+                  <option value="">선택</option>
+                  <option value="A" data-label="A">A</option>
+                  <option value="B" data-label="B">B</option>
+                  <option value="C" data-label="C">C</option>
+                </select>
+              </td>
+            </tr>
+
             <tr class="notes-row">
               <th scope="row" class="label vertical">
                 <span>특이사항 / 진행현황 / Key Partner</span>
@@ -139,12 +166,50 @@
                 <textarea name="notes" rows="8" placeholder="특이사항, 진행현황, Key Partner 등을 입력하세요"></textarea>
               </td>
             </tr>
+
+            <tr class="attachments-row">
+              <th scope="row" class="label">첨부파일</th>
+              <td class="value full" colspan="3">
+                <div class="attachments-wrap">
+                  <input
+                    type="file"
+                    id="attachmentFiles"
+                    name="attachmentFiles"
+                    class="attachment-input"
+                    multiple
+                  />
+                  <button type="button" class="ghost attachment-trigger" id="btn-attachment">
+                    첨부파일
+                  </button>
+                  <div class="attachment-names" id="attachmentNames" aria-live="polite"></div>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
 
-        <aside class="grades-panel" aria-live="polite">
-          <h2>등급 산정 결과</h2>
-          <div class="summary" id="grade-summary"></div>
+        <aside class="grades-panel" aria-labelledby="admin-panel-title">
+          <div class="admin-head">
+            <h2 id="admin-panel-title">관리자</h2>
+            <div class="admin-head-actions no-print">
+              <button type="button" class="ghost btn-admin-sm" id="btn-admin-expand">펼치기</button>
+              <button type="button" class="ghost btn-admin-sm" id="btn-admin-collapse" hidden>접기</button>
+            </div>
+          </div>
+          <div class="admin-password-block no-print" id="adminPasswordBlock" hidden>
+            <div class="admin-password-row">
+              <label for="adminPassword">비밀번호</label>
+              <input type="password" id="adminPassword" class="admin-password-input" autocomplete="off" />
+            </div>
+            <p class="admin-password-error" id="adminPasswordError" hidden role="alert"></p>
+            <div class="admin-password-actions">
+              <button type="button" class="primary btn-admin-sm" id="btn-admin-unlock">확인</button>
+              <button type="button" class="ghost btn-admin-sm" id="btn-admin-cancel">취소</button>
+            </div>
+          </div>
+          <div class="admin-content" id="adminGradeContent" hidden aria-live="polite">
+            <div class="summary" id="grade-summary"></div>
+          </div>
         </aside>
 
         <div class="actions no-print">
