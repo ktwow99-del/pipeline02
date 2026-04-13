@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>사업 파이프라인 등급 산정</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="page">
+      <header class="page-header">
+        <h1>사업 파이프라인 등급 산정</h1>
+      </header>
+
+      <form id="rating-form" class="sheet" autocomplete="on">
+        <table class="grid-form">
+          <tbody>
+            <tr>
+              <th scope="row" class="label">사업명</th>
+              <td class="value full" colspan="3">
+                <input type="text" name="projectName" placeholder="사업명을 입력하세요" />
+              </td>
+            </tr>
+
+            <tr>
+              <th scope="row" class="label">연면적</th>
+              <td class="value">
+                <select name="floorArea" id="floorArea" data-grade-key="floorArea">
+                  <option value="">선택</option>
+                  <option value="A" data-label="40,000평 이상">40,000평 이상</option>
+                  <option value="B" data-label="20,000평 이상">20,000평 이상</option>
+                  <option value="C" data-label="20,000평 이하">20,000평 이하</option>
+                </select>
+              </td>
+              <th scope="row" class="label narrow" rowspan="2">입지</th>
+              <td class="value split" rowspan="2">
+                <div class="stack">
+                  <select name="location" id="location" data-grade-key="location">
+                    <option value="">선택</option>
+                    <option value="A" data-label="서울">서울</option>
+                    <option value="B" data-label="수도권/광역시">수도권/광역시</option>
+                    <option value="C" data-label="지방">지방</option>
+                  </select>
+                </div>
+                <div class="stack bordered-top">
+                  <input
+                    type="text"
+                    name="locationDetail"
+                    id="locationDetail"
+                    placeholder="구체적 위치·메모 등"
+                    autocomplete="address-line2"
+                  />
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row" class="label">전략방향 정합성</th>
+              <td class="value">
+                <select name="strategyFit" id="strategyFit" data-grade-key="strategyFit">
+                  <option value="">선택</option>
+                  <option value="A" data-label="자체">자체</option>
+                  <option value="B" data-label="도급">도급</option>
+                  <option value="B" data-label="정비">정비</option>
+                  <option value="C" data-label="지분투자">지분투자</option>
+                </select>
+              </td>
+            </tr>
+
+            <tr>
+              <th scope="row" class="label">상품 종류</th>
+              <td class="value">
+                <select name="strategyDirection" id="strategyDirection" data-grade-key="strategyDirection">
+                  <option value="">선택</option>
+                  <option value="A" data-label="공동주택">공동주택</option>
+                  <option value="B" data-label="오피스텔">오피스텔</option>
+                  <option value="B" data-label="데이터센터">데이터센터</option>
+                  <option value="B" data-label="오피스">오피스</option>
+                  <option value="C" data-label="주상복합">주상복합</option>
+                  <option value="C" data-label="기타">기타</option>
+                </select>
+              </td>
+              <th scope="row" class="label narrow">경쟁사</th>
+              <td class="value">
+                <input type="text" name="competitor" placeholder="경쟁사" />
+              </td>
+            </tr>
+
+            <tr>
+              <th scope="row" class="label">도입시설<br />(프로그램)</th>
+              <td class="value full" colspan="3">
+                <input type="text" name="facilities" placeholder="도입시설(프로그램)을 입력하세요" />
+              </td>
+            </tr>
+
+            <tr>
+              <th scope="row" class="label">발주처</th>
+              <td class="value">
+                <input type="text" name="client" placeholder="발주처" />
+              </td>
+              <th scope="row" class="label narrow">입찰방식</th>
+              <td class="value">
+                <input type="text" name="biddingMethod" placeholder="입찰방식" />
+              </td>
+            </tr>
+
+            <tr>
+              <th scope="row" class="label">협의처</th>
+              <td class="value">
+                <input type="text" name="consultation" placeholder="협의처" />
+              </td>
+              <th scope="row" class="label narrow">설계사 / 감리(CM)</th>
+              <td class="value">
+                <input type="text" name="architectCm" placeholder="설계사 / 감리(CM)" />
+              </td>
+            </tr>
+
+            <tr>
+              <th scope="row" class="label">금융구도</th>
+              <td class="value">
+                <input type="text" name="finance" placeholder="금융구도" />
+              </td>
+              <th scope="row" class="label narrow">사업예산</th>
+              <td class="value">
+                <input type="text" name="budget" placeholder="사업예산" />
+              </td>
+            </tr>
+
+            <tr class="notes-row">
+              <th scope="row" class="label vertical">
+                <span>특이사항 / 진행현황 / Key Partner</span>
+              </th>
+              <td class="value full notes" colspan="3">
+                <textarea name="notes" rows="8" placeholder="특이사항, 진행현황, Key Partner 등을 입력하세요"></textarea>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <aside class="grades-panel" aria-live="polite">
+          <h2>등급 산정 결과</h2>
+          <div class="summary" id="grade-summary"></div>
+        </aside>
+
+        <div class="actions no-print">
+          <button type="button" class="ghost" id="btn-reset">초기화</button>
+          <button type="button" class="primary" id="btn-pdf">PDF 출력</button>
+        </div>
+      </form>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
