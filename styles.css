@@ -180,6 +180,10 @@ body {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
+.grid-form input.input-postcode {
+  cursor: pointer;
+}
+
 .grid-form textarea {
   resize: vertical;
   min-height: 160px;
@@ -373,8 +377,135 @@ body {
   color: #b42318;
 }
 
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* [hidden] 기본 스타일보다 구체적으로 지정 — display:flex가 숨김을 무시하는 문제 방지 */
+.admin-content[hidden] {
+  display: none !important;
+}
+
 .admin-content .summary {
   margin-bottom: 0;
+}
+
+.admin-export-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.receipt-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  padding: 0;
+}
+
+.receipt-modal[hidden] {
+  display: none !important;
+}
+
+.receipt-modal-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.receipt-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 29, 33, 0.5);
+}
+
+.receipt-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(720px, 100%);
+  max-height: min(88vh, 720px);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.receipt-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  background: #fafbfd;
+}
+
+.receipt-modal-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.receipt-modal-body {
+  padding: 12px 16px 16px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.receipt-empty {
+  margin: 0;
+  padding: 20px 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.receipt-table th,
+.receipt-table td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.receipt-table th {
+  background: var(--accent-soft);
+  font-weight: 700;
+  color: #243a5c;
+  white-space: nowrap;
+}
+
+.receipt-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.receipt-table tbody tr:nth-child(even) {
+  background: #fafbfd;
+}
+
+.receipt-del {
+  min-width: 64px;
 }
 
 .summary {
@@ -409,11 +540,27 @@ body {
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
   gap: 10px;
   padding: 16px 20px 20px;
   border-top: 1px solid var(--line);
   background: #fff;
+}
+
+.actions .ledger-status {
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: left;
+}
+
+@media (min-width: 720px) {
+  .actions .ledger-status {
+    text-align: right;
+  }
 }
 
 button {
