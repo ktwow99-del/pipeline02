@@ -39,14 +39,14 @@
           </colgroup>
           <tbody>
             <tr>
-              <th scope="row" class="label">사업명</th>
+              <th scope="row" class="label">사업명<sup class="label-req" aria-hidden="true">＊</sup></th>
               <td class="value full" colspan="3">
                 <input type="text" name="projectName" placeholder="사업명을 입력하세요" />
               </td>
             </tr>
 
             <tr>
-              <th scope="row" class="label">연면적</th>
+              <th scope="row" class="label">연면적<sup class="label-req" aria-hidden="true">＊</sup></th>
               <td class="value">
                 <select name="floorArea" id="floorArea" data-grade-key="floorArea">
                   <option value="">선택</option>
@@ -55,7 +55,7 @@
                   <option value="C" data-label="20,000평 이하">20,000평 이하</option>
                 </select>
               </td>
-              <th scope="row" class="label narrow" rowspan="2">입지</th>
+              <th scope="row" class="label narrow" rowspan="2">입지<sup class="label-req" aria-hidden="true">＊</sup></th>
               <td class="value split" rowspan="2">
                 <div class="stack">
                   <select name="location" id="location" data-grade-key="location">
@@ -80,76 +80,78 @@
               </td>
             </tr>
             <tr>
-              <th scope="row" class="label">전략방향 정합성</th>
+              <th scope="row" class="label">사업구도<sup class="label-req" aria-hidden="true">＊</sup></th>
               <td class="value">
                 <select name="strategyFit" id="strategyFit" data-grade-key="strategyFit">
                   <option value="">선택</option>
-                  <option value="A" data-label="자체">자체</option>
-                  <option value="B" data-label="도급">도급</option>
-                  <option value="B" data-label="정비">정비</option>
-                  <option value="C" data-label="지분투자">지분투자</option>
+                  <option value="A" data-label="자체사업: 당사에서 부지 매입">자체사업: 당사에서 부지 매입</option>
+                  <option value="B" data-label="도급사업: 지분투자 없이 시공 참여">도급사업: 지분투자 없이 시공 참여</option>
+                  <option value="B" data-label="정비사업: 재건축/재개발">정비사업: 재건축/재개발</option>
+                  <option value="C" data-label="지분투자: 사업법인에 자본 출자">지분투자: 사업법인에 자본 출자</option>
                 </select>
               </td>
             </tr>
 
             <tr>
-              <th scope="row" class="label">상품 종류</th>
+              <th scope="row" class="label">주용도<sup class="label-req" aria-hidden="true">＊</sup></th>
               <td class="value">
                 <select name="strategyDirection" id="strategyDirection" data-grade-key="strategyDirection">
                   <option value="">선택</option>
-                  <option value="A" data-label="공동주택">공동주택</option>
-                  <option value="B" data-label="오피스텔">오피스텔</option>
-                  <option value="B" data-label="데이터센터">데이터센터</option>
-                  <option value="B" data-label="오피스">오피스</option>
-                  <option value="C" data-label="주상복합">주상복합</option>
+                  <option value="A" data-label="공동주택 : 비주거시설 10% 이하">공동주택 : 비주거시설 10% 이하</option>
+                  <option value="B" data-label="OT: 주거용 오피스텔">OT: 주거용 오피스텔</option>
+                  <option value="B" data-label="DC : 데이터센터">DC : 데이터센터</option>
+                  <option value="B" data-label="오피스: 업무용">오피스: 업무용</option>
+                  <option value="C" data-label="주상복합:비주거시설 10% 이상">주상복합:비주거시설 10% 이상</option>
                   <option value="C" data-label="기타">기타</option>
                 </select>
               </td>
               <th scope="row" class="label narrow">대지 면적</th>
               <td class="value">
-                <input type="text" name="siteArea" placeholder="대지 면적" />
+                <input type="text" name="siteArea" placeholder="평 단위로 기재" />
               </td>
             </tr>
 
             <tr>
               <th scope="row" class="label">발주처</th>
               <td class="value">
-                <input type="text" name="client" placeholder="발주처" />
+                <input type="text" name="client" placeholder="사업주체" />
               </td>
               <th scope="row" class="label narrow">입찰방식</th>
               <td class="value">
-                <input type="text" name="biddingMethod" placeholder="입찰방식" />
+                <input type="text" name="biddingMethod" placeholder="경쟁입찰, 수의계약 등 파악 가능 시 기재" />
               </td>
             </tr>
 
             <tr>
               <th scope="row" class="label">협의처</th>
               <td class="value">
-                <input type="text" name="consultation" placeholder="협의처" />
+                <input type="text" name="consultation" placeholder="ex)ooo증권 ooo팀 ooo차장" />
               </td>
               <th scope="row" class="label narrow">설계사 / 감리(CM)</th>
               <td class="value">
-                <input type="text" name="architectCm" placeholder="설계사 / 감리(CM)" />
-              </td>
-            </tr>
-
-            <tr>
-              <th scope="row" class="label">금융구도</th>
-              <td class="value">
-                <input type="text" name="finance" placeholder="금융구도" />
-              </td>
-              <th scope="row" class="label narrow">사업예산</th>
-              <td class="value">
-                <input type="text" name="budget" placeholder="사업예산" />
+                <input type="text" name="architectCm" placeholder="파악 가능시 기재" />
               </td>
             </tr>
 
             <tr>
               <th scope="row" class="label">경쟁사</th>
               <td class="value">
-                <input type="text" name="competitor" placeholder="경쟁사" />
+                <input type="text" name="competitor" placeholder="파악 가능시 기재" />
               </td>
-              <th scope="row" class="label narrow">수주 가능성</th>
+              <th scope="row" class="label narrow">
+                <span class="label-hint-row">
+                  수주 가능성<sup class="label-req" aria-hidden="true">＊</sup>
+                  <span class="label-hint-wrap">
+                    <button type="button" class="label-hint-btn" aria-label="수주 가능성 안내">
+                      ❓
+                    </button>
+                    <span class="label-hint-tooltip" role="tooltip">
+                      추진 가능성 자체 예상<br />
+                      (사업본부에서 재검토 예정)
+                    </span>
+                  </span>
+                </span>
+              </th>
               <td class="value">
                 <select name="orderPossibility" id="orderPossibility" data-grade-key="orderPossibility">
                   <option value="">선택</option>

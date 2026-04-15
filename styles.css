@@ -118,6 +118,83 @@ body {
   color: #2b3038;
 }
 
+.grid-form th.label sup.label-req {
+  color: #d32f2f;
+  font-size: 0.55em;
+  font-weight: 700;
+  margin-left: 2px;
+  line-height: 0;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.42rem;
+}
+
+.label-hint-row {
+  display: inline;
+  text-align: center;
+}
+
+.label-hint-wrap {
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+  margin-left: 1px;
+}
+
+.grid-form th.label .label-hint-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: help;
+  font-size: 0.6rem;
+  line-height: 1;
+  vertical-align: baseline;
+  border-radius: 4px;
+  color: #9ca3af;
+  filter: grayscale(1) brightness(0.92);
+}
+
+.grid-form th.label .label-hint-btn:hover,
+.grid-form th.label .label-hint-btn:focus-visible {
+  filter: grayscale(1) brightness(0.78);
+}
+
+.grid-form th.label .label-hint-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.grid-form th.label .label-hint-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  z-index: 40;
+  min-width: 12rem;
+  max-width: min(18rem, 88vw);
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  color: #2b3038;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease, visibility 0.12s ease;
+}
+
+.grid-form th.label .label-hint-btn:hover + .label-hint-tooltip,
+.grid-form th.label .label-hint-btn:focus-visible + .label-hint-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
 .grid-form th[rowspan],
 .grid-form td[rowspan] {
   vertical-align: middle;
