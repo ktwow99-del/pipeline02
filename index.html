@@ -30,6 +30,9 @@
       </header>
 
       <form id="rating-form" class="sheet" autocomplete="on">
+        <p class="sheet-req-legend">
+          <sup class="sheet-req-legend-star" aria-hidden="true">＊</sup>: 필 수 입 력
+        </p>
         <table class="grid-form">
           <colgroup>
             <col class="grid-form-col-label" />
@@ -229,6 +232,7 @@
           <button type="button" class="ghost" id="btn-ledger-save">저장</button>
           <span class="ledger-status" id="ledger-status" aria-live="polite"></span>
           <button type="button" class="primary" id="btn-pdf">PDF 출력</button>
+          <button type="button" class="primary" id="btn-review-complete" hidden>검토 완료</button>
         </div>
       </form>
     </div>

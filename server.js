@@ -20,6 +20,27 @@ function sanitizeSegment(str, maxChars) {
   return cut || "미입력";
 }
 
+function sanitizeCompactSegment(str, maxChars) {
+  const t = String(str ?? "")
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "")
+    .replace(/[\s,，]+/g, "")
+    .trim();
+  const cut = [...t].slice(0, maxChars).join("");
+  return cut || "미입력";
+}
+
+function decodeUtf8Filename(originalName) {
+  const raw = String(originalName ?? "");
+  const decoded = Buffer.from(raw, "latin1").toString("utf8");
+  const rawHasHangul = /[\uac00-\ud7a3]/.test(raw);
+  const decodedHasHangul = /[\uac00-\ud7a3]/.test(decoded);
+  const rawLooksMojibake = /[\u0080-\u009f]|[ÃÂÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/.test(raw);
+  if (!decoded.includes("\uFFFD") && ((decodedHasHangul && !rawHasHangul) || rawLooksMojibake)) {
+    return decoded.normalize("NFC");
+  }
+  return raw.normalize("NFC");
+}
+
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     cb(null, DATA_DIR);
@@ -27,18 +48,17 @@ const storage = multer.diskStorage({
   filename(req, file, cb) {
     const dateRaw = String(req.body.date || "");
     const dateCompact = dateRaw.replace(/-/g, "") || new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const scoreNum = parseInt(String(req.body.score), 10);
-    const score = Number.isFinite(scoreNum) ? scoreNum : 0;
-    const proj6 = sanitizeSegment(req.body.projectName, 6);
-    const ext = path.extname(file.originalname) || "";
-    const baseOrig = path.basename(file.originalname, ext);
+    const employeeIdName = sanitizeCompactSegment(req.body.employeeIdName, 40);
+    const originalName = decodeUtf8Filename(file.originalname);
+    const ext = path.extname(originalName) || "";
+    const baseOrig = path.basename(originalName, ext);
     const origSafe = sanitizeSegment(baseOrig, 120);
-    let name = `${dateCompact}_${score}점_${proj6}_${origSafe}${ext}`;
+    let name = `${dateCompact}_${employeeIdName}_${origSafe}${ext}`;
     let full = path.join(DATA_DIR, name);
     let n = 0;
     while (fs.existsSync(full)) {
       n += 1;
-      name = `${dateCompact}_${score}점_${proj6}_${origSafe}_${n}${ext}`;
+      name = `${dateCompact}_${employeeIdName}_${origSafe}_${n}${ext}`;
       full = path.join(DATA_DIR, name);
     }
     cb(null, name);
@@ -51,6 +71,15 @@ const upload = multer({
 });
 
 const app = express();
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
 app.use(express.static(APP_ROOT));
 
 app.post("/api/upload-attachment", upload.single("file"), (req, res) => {

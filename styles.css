@@ -88,6 +88,16 @@ body {
   overflow: hidden;
 }
 
+.sheet-req-legend {
+  margin: 0;
+  padding: 10px 14px 6px;
+  text-align: right;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2b3038;
+  line-height: 1.4;
+}
+
 .grid-form {
   --grid-form-label-w: 140px;
   width: 100%;
@@ -118,15 +128,23 @@ body {
   color: #2b3038;
 }
 
-.grid-form th.label sup.label-req {
+.grid-form th.label sup.label-req,
+.sheet-req-legend-star {
   color: #d32f2f;
   font-size: 0.55em;
   font-weight: 700;
-  margin-left: 2px;
   line-height: 0;
   vertical-align: baseline;
   position: relative;
   top: -0.42rem;
+}
+
+.grid-form th.label sup.label-req {
+  margin-left: 2px;
+}
+
+.sheet-req-legend-star {
+  margin-right: 1px;
 }
 
 .label-hint-row {
@@ -476,6 +494,18 @@ body {
   gap: 8px;
 }
 
+.sheet.review-mode .grades-panel {
+  display: none;
+}
+
+.sheet.review-mode .actions > :not(#btn-review-complete) {
+  display: none;
+}
+
+.sheet.review-mode .actions {
+  justify-content: flex-end;
+}
+
 .receipt-modal {
   position: fixed;
   inset: 0;
@@ -581,7 +611,15 @@ body {
   background: #fafbfd;
 }
 
-.receipt-del {
+.receipt-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.receipt-del,
+.receipt-review {
   min-width: 64px;
 }
 
