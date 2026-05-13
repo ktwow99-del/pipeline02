@@ -24,11 +24,18 @@
 
   const LEDGER_STORAGE_KEY = "pipeline_rating_ledger_v1";
   const REVIEW_STORAGE_KEY = "pipeline_rating_reviews_v1";
-  const ATTACHMENT_API_URL =
-    location.protocol === "file:" ||
-    (["localhost", "127.0.0.1"].includes(location.hostname) && location.port !== "3980")
-      ? "http://localhost:3980/api/upload-attachment"
-      : "/api/upload-attachment";
+  function getAttachmentApiUrl() {
+    if (location.protocol === "file:") {
+      return "http://localhost:3980/api/upload-attachment";
+    }
+    const apiUrl = new URL("/api/upload-attachment", location.href);
+    if (apiUrl.port !== "3980") {
+      apiUrl.port = "3980";
+    }
+    return apiUrl.toString();
+  }
+
+  const ATTACHMENT_API_URL = getAttachmentApiUrl();
 
   /** @typedef {{ key: string, header: string }} LedgerColumn */
   /** @type {LedgerColumn[]} */
