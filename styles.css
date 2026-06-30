@@ -498,12 +498,19 @@ body {
   display: none;
 }
 
-.sheet.review-mode .actions > :not(#btn-review-complete) {
+.sheet.review-mode .actions > button,
+.sheet.review-mode .actions > span {
   display: none;
+}
+
+.sheet.review-mode .actions > #btn-review-complete,
+.sheet.review-mode .actions > #btn-review-pdf {
+  display: inline-block;
 }
 
 .sheet.review-mode .actions {
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .receipt-modal {

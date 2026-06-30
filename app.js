@@ -11,6 +11,7 @@
   const adminPasswordError = document.getElementById("adminPasswordError");
   const btnReset = document.getElementById("btn-reset");
   const btnPdf = document.getElementById("btn-pdf");
+  const btnReviewPdf = document.getElementById("btn-review-pdf");
   const btnLedgerSave = document.getElementById("btn-ledger-save");
   const btnLedgerExport = document.getElementById("btn-ledger-export");
   const btnReceiptStatus = document.getElementById("btn-receipt-status");
@@ -485,12 +486,14 @@
     populateFormFromSnapshot(row);
     form.classList.add("review-mode");
     if (btnReviewComplete) btnReviewComplete.hidden = false;
+    if (btnReviewPdf) btnReviewPdf.hidden = false;
     document.querySelector(".page")?.scrollIntoView({ block: "start" });
   }
 
   function exitReviewMode() {
     form.classList.remove("review-mode");
     if (btnReviewComplete) btnReviewComplete.hidden = true;
+    if (btnReviewPdf) btnReviewPdf.hidden = true;
     activeReviewSourceEntry = null;
     restoreFormState(formStateBeforeReview);
     formStateBeforeReview = null;
@@ -510,7 +513,11 @@
     };
     try {
       upsertReviewEntry(reviewEntry);
+      const isNewWindow = window.opener !== null;
       exitReviewMode();
+      if (isNewWindow) {
+        window.setTimeout(() => window.close(), 500);
+      }
     } catch (e) {
       window.alert("검토 완료 내역을 저장하지 못했습니다. 브라우저 저장 공간을 확인한 뒤 다시 시도해 주세요.");
       console.error(e);
@@ -755,7 +762,10 @@
     const reviewBtn = t.closest("button.receipt-review");
     if (reviewBtn && "entryId" in reviewBtn.dataset && reviewBtn.dataset.entryId) {
       const row = loadLedger().find((item) => String(item.entryId || "") === reviewBtn.dataset.entryId);
-      if (row) enterReviewMode(row);
+      if (row) {
+        sessionStorage.setItem("reviewEntry", JSON.stringify(row));
+        window.open(location.href + "?review=true", "_blank", "width=1200,height=900");
+      }
       return;
     }
     const delBtn = t.closest("button.receipt-del");
@@ -845,7 +855,178 @@
     }
   });
 
+  function downloadReviewPdf() {
+    if (!activeReviewSourceEntry) {
+      window.alert("검토 중인 항목이 없습니다.");
+      return;
+    }
+
+    if (typeof html2pdf === "undefined") {
+      window.alert("PDF 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해주세요.");
+      return;
+    }
+
+    const now = new Date();
+    const dateStr = formatLocalDate(now);
+    const timeStr = now.toLocaleTimeString("ko-KR");
+    const { employeeId, employeeName } = splitEmployeeIdName(getFieldValue("employeeIdName"));
+
+    // Create a container for PDF content
+    const container = document.createElement("div");
+    container.style.padding = "20px";
+    container.style.backgroundColor = "#fff";
+    container.style.fontFamily = "'Noto Sans KR', sans-serif";
+    container.style.fontSize = "12px";
+    container.style.lineHeight = "1.6";
+    container.style.color = "#1a1d21";
+
+    // Title
+    const title = document.createElement("h1");
+    title.textContent = "검토 보고서";
+    title.style.fontSize = "18px";
+    title.style.fontWeight = "700";
+    title.style.marginBottom = "20px";
+    title.style.textAlign = "center";
+    title.style.pageBreakAfter = "avoid";
+    container.appendChild(title);
+
+    // Header info
+    const headerInfo = document.createElement("div");
+    headerInfo.style.marginBottom = "20px";
+    headerInfo.style.pageBreakAfter = "avoid";
+    headerInfo.innerHTML = `
+      <table style="width:100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid #e0e0e0;">
+          <td style="padding: 8px; font-weight: 600; width: 25%;">검토일시:</td>
+          <td style="padding: 8px;">${dateStr} ${timeStr}</td>
+          <td style="padding: 8px; font-weight: 600; width: 25%;">검토자:</td>
+          <td style="padding: 8px;">${employeeId} / ${employeeName}</td>
+        </tr>
+      </table>
+    `;
+    container.appendChild(headerInfo);
+
+    // Main data table
+    const fieldsToShow = [
+      { label: "사업명", value: getFieldValue("projectName") },
+      { label: "연면적", value: getSelectDisplayLabel(form.querySelector('[data-grade-key="floorArea"]')) },
+      { label: "입지", value: getSelectDisplayLabel(form.querySelector('[data-grade-key="location"]')) },
+      { label: "입지 상세", value: getFieldValue("locationDetail") },
+      { label: "주용도", value: getSelectDisplayLabel(form.querySelector('[data-grade-key="strategyDirection"]')) },
+      { label: "사업구도", value: getSelectDisplayLabel(form.querySelector('[data-grade-key="strategyFit"]')) },
+      { label: "대지 면적", value: getFieldValue("siteArea") },
+      { label: "발주처", value: getFieldValue("client") },
+      { label: "입찰방식", value: getFieldValue("biddingMethod") },
+      { label: "협의처", value: getFieldValue("consultation") },
+      { label: "설계사/감리(CM)", value: getFieldValue("architectCm") },
+      { label: "경쟁사", value: getFieldValue("competitor") },
+      { label: "수주 가능성", value: getSelectDisplayLabel(form.querySelector('[data-grade-key="orderPossibility"]')) },
+    ];
+
+    const mainTable = document.createElement("table");
+    mainTable.style.width = "100%";
+    mainTable.style.borderCollapse = "collapse";
+    mainTable.style.marginBottom = "20px";
+    mainTable.style.pageBreakAfter = "avoid";
+
+    fieldsToShow.forEach((field) => {
+      const tr = document.createElement("tr");
+      tr.style.borderBottom = "1px solid #e0e0e0";
+      tr.innerHTML = `
+        <td style="padding: 8px; font-weight: 600; background: #f9f9f9; width: 25%;">${field.label}</td>
+        <td style="padding: 8px;">${field.value || "-"}</td>
+      `;
+      mainTable.appendChild(tr);
+    });
+
+    container.appendChild(mainTable);
+
+    // Notes section with special page break handling
+    const notesLabel = document.createElement("h2");
+    notesLabel.textContent = "특이사항 / 진행현황 / Key Partner";
+    notesLabel.style.fontSize = "14px";
+    notesLabel.style.fontWeight = "700";
+    notesLabel.style.marginTop = "24px";
+    notesLabel.style.marginBottom = "12px";
+    notesLabel.style.pageBreakAfter = "avoid";
+    container.appendChild(notesLabel);
+
+    const notesContent = document.createElement("div");
+    notesContent.style.padding = "12px";
+    notesContent.style.backgroundColor = "#f9f9f9";
+    notesContent.style.border = "1px solid #e0e0e0";
+    notesContent.style.borderRadius = "4px";
+    notesContent.style.whiteSpace = "pre-wrap";
+    notesContent.style.wordWrap = "break-word";
+    notesContent.style.pageBreakInside = "avoid";
+    notesContent.style.minHeight = "60px";
+    notesContent.textContent = getFieldValue("notes") || "-";
+    container.appendChild(notesContent);
+
+    // Score section
+    const scoreSection = document.createElement("div");
+    scoreSection.style.marginTop = "24px";
+    scoreSection.style.paddingTop = "16px";
+    scoreSection.style.borderTop = "2px solid #333";
+    scoreSection.style.pageBreakAfter = "avoid";
+
+    const scoreLabel = document.createElement("div");
+    scoreLabel.style.fontSize = "14px";
+    scoreLabel.style.fontWeight = "700";
+    scoreLabel.style.marginBottom = "8px";
+    scoreLabel.textContent = "배점";
+    scoreSection.appendChild(scoreLabel);
+
+    const scoreValue = document.createElement("div");
+    scoreValue.style.fontSize = "16px";
+    scoreValue.style.fontWeight = "700";
+    scoreValue.style.color = "#1e4d8b";
+    scoreValue.textContent = `${computeTotalPoints()} / ${SCORE_MAX}점`;
+    scoreSection.appendChild(scoreValue);
+
+    container.appendChild(scoreSection);
+
+    // Create PDF
+    const element = container;
+    const projectName = String(getFieldValue("projectName") || "항목").trim();
+    const receiptDate = String(activeReviewSourceEntry?.dateKey || formatLocalDate(now)).trim();
+    const safeFileName = `${receiptDate}_${projectName}`.replace(/[\\/:*?"<>|\s]+/g, "_").replace(/_+/g, "_");
+
+    const opt = {
+      margin: 10,
+      filename: `${safeFileName}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: "avoid-all" },
+    };
+
+    // Use html2pdf to generate PDF
+    html2pdf().set(opt).from(element).save();
+  }
+
+  btnReviewPdf?.addEventListener("click", () => {
+    downloadReviewPdf();
+  });
+
   renderGrades();
   renderAttachmentNames();
   renderLedgerStatus();
+
+  // Auto-enter review mode if opened from another window
+  const urlParams = new URLSearchParams(location.search);
+  if (urlParams.get("review") === "true") {
+    // Remove query parameter from URL
+    window.history.replaceState({}, document.title, location.pathname);
+    try {
+      const reviewEntryJson = sessionStorage.getItem("reviewEntry");
+      if (reviewEntryJson) {
+        const reviewEntry = JSON.parse(reviewEntryJson);
+        sessionStorage.removeItem("reviewEntry");
+        enterReviewMode(reviewEntry);
+      }
+    } catch (e) {
+      console.error("Failed to auto-enter review mode:", e);
+    }
+  }
 })();
