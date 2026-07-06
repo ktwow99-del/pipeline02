@@ -4,9 +4,12 @@ const path = require("path");
 const fs = require("fs");
 const express = require("express");
 const multer = require("multer");
+const { loadRecords, saveRecords } = require("./persistence");
 
 const APP_ROOT = __dirname;
 const DATA_DIR = path.join(APP_ROOT, "data");
+const LEDGER_FILE = path.join(DATA_DIR, "ledger.json");
+const REVIEW_FILE = path.join(DATA_DIR, "reviews.json");
 const PORT = Number(process.env.PORT) || 3980;
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -73,14 +76,50 @@ const upload = multer({
 const app = express();
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") {
     res.sendStatus(204);
     return;
   }
   next();
 });
+app.use(express.json());
 app.use(express.static(APP_ROOT));
+
+app.get("/api/ledger", (req, res) => {
+  res.json(loadRecords(LEDGER_FILE, []));
+});
+
+app.post("/api/ledger", (req, res) => {
+  const payload = Array.isArray(req.body) ? req.body : [];
+  saveRecords(LEDGER_FILE, payload);
+  res.json(payload);
+});
+
+app.delete("/api/ledger/:entryId", (req, res) => {
+  const rows = loadRecords(LEDGER_FILE, []);
+  const next = rows.filter((row) => String(row.entryId || "") !== String(req.params.entryId || ""));
+  saveRecords(LEDGER_FILE, next);
+  res.json(next);
+});
+
+app.get("/api/reviews", (req, res) => {
+  res.json(loadRecords(REVIEW_FILE, []));
+});
+
+app.post("/api/reviews", (req, res) => {
+  const payload = Array.isArray(req.body) ? req.body : [];
+  saveRecords(REVIEW_FILE, payload);
+  res.json(payload);
+});
+
+app.delete("/api/reviews/:sourceEntryId", (req, res) => {
+  const rows = loadRecords(REVIEW_FILE, []);
+  const next = rows.filter((row) => String(row.sourceEntryId || "") !== String(req.params.sourceEntryId || ""));
+  saveRecords(REVIEW_FILE, next);
+  res.json(next);
+});
 
 app.post("/api/upload-attachment", upload.single("file"), (req, res) => {
   if (!req.file) {
@@ -93,4 +132,6 @@ app.post("/api/upload-attachment", upload.single("file"), (req, res) => {
 app.listen(PORT, () => {
   console.log(`pipeline_rating_2 서버: http://localhost:${PORT}`);
   console.log(`첨부 저장 경로: ${DATA_DIR}`);
+  console.log(`누적 데이터 저장 경로: ${LEDGER_FILE}`);
+  console.log(`검토 데이터 저장 경로: ${REVIEW_FILE}`);
 });

@@ -25,18 +25,25 @@
 
   const LEDGER_STORAGE_KEY = "pipeline_rating_ledger_v1";
   const REVIEW_STORAGE_KEY = "pipeline_rating_reviews_v1";
-  function getAttachmentApiUrl() {
+
+  function getApiBaseUrl() {
     if (location.protocol === "file:") {
-      return "http://localhost:3980/api/upload-attachment";
+      return "http://localhost:3980";
     }
-    const apiUrl = new URL("/api/upload-attachment", location.href);
-    if (apiUrl.port !== "3980") {
-      apiUrl.port = "3980";
-    }
-    return apiUrl.toString();
+    return location.origin || `http://${location.hostname}:${location.port || 3980}`;
+  }
+
+  function getApiUrl(path) {
+    return new URL(path, `${getApiBaseUrl()}/`).toString();
+  }
+
+  function getAttachmentApiUrl() {
+    return getApiUrl("/api/upload-attachment");
   }
 
   const ATTACHMENT_API_URL = getAttachmentApiUrl();
+  const LEDGER_API_URL = getApiUrl("/api/ledger");
+  const REVIEW_API_URL = getApiUrl("/api/reviews");
 
   /** @typedef {{ key: string, header: string }} LedgerColumn */
   /** @type {LedgerColumn[]} */
@@ -168,6 +175,85 @@
     return { employeeId: "", employeeName: s };
   }
 
+  async function persistLedgerToServer(rows) {
+    try {
+      const res = await fetch(LEDGER_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rows),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || res.statusText || "ledger sync failed");
+      }
+    } catch (error) {
+      console.warn("ledger sync failed", error);
+    }
+  }
+
+  async function persistReviewsToServer(rows) {
+    try {
+      const res = await fetch(REVIEW_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rows),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || res.statusText || "review sync failed");
+      }
+    } catch (error) {
+      console.warn("review sync failed", error);
+    }
+  }
+
+  async function deleteLedgerEntryFromServer(entryId) {
+    try {
+      const res = await fetch(`${LEDGER_API_URL}/${encodeURIComponent(String(entryId || ""))}`, { method: "DELETE" });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || res.statusText || "ledger delete failed");
+      }
+    } catch (error) {
+      console.warn("ledger delete sync failed", error);
+    }
+  }
+
+  async function deleteReviewEntryFromServer(entryId) {
+    try {
+      const res = await fetch(`${REVIEW_API_URL}/${encodeURIComponent(String(entryId || ""))}`, { method: "DELETE" });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || res.statusText || "review delete failed");
+      }
+    } catch (error) {
+      console.warn("review delete sync failed", error);
+    }
+  }
+
+  async function hydrateStoredDataFromServer() {
+    try {
+      const [ledgerRes, reviewRes] = await Promise.all([fetch(LEDGER_API_URL), fetch(REVIEW_API_URL)]);
+      const serverLedger = ledgerRes.ok ? await ledgerRes.json() : null;
+      const serverReviews = reviewRes.ok ? await reviewRes.json() : null;
+      if (Array.isArray(serverLedger) && serverLedger.length > 0) {
+        saveLedger(serverLedger);
+        if (Array.isArray(serverReviews)) {
+          saveReviews(serverReviews);
+        }
+        return;
+      }
+      const localLedger = loadLedger();
+      const localReviews = loadReviews();
+      if (localLedger.length > 0 || localReviews.length > 0) {
+        saveLedger(localLedger);
+        saveReviews(localReviews);
+      }
+    } catch (error) {
+      console.warn("storage hydration failed", error);
+    }
+  }
+
   /** @returns {Record<string, string | number>[]} */
   function loadLedger() {
     try {
@@ -192,7 +278,9 @@
   }
 
   function saveLedger(rows) {
-    localStorage.setItem(LEDGER_STORAGE_KEY, JSON.stringify(rows));
+    const normalized = Array.isArray(rows) ? rows : [];
+    localStorage.setItem(LEDGER_STORAGE_KEY, JSON.stringify(normalized));
+    void persistLedgerToServer(normalized);
   }
 
   /** @returns {Record<string, string | number>[]} */
@@ -208,7 +296,9 @@
   }
 
   function saveReviews(rows) {
-    localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(rows));
+    const normalized = Array.isArray(rows) ? rows : [];
+    localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(normalized));
+    void persistReviewsToServer(normalized);
   }
 
   function upsertReviewEntry(entry) {
@@ -227,6 +317,7 @@
   function removeReviewBySourceEntryId(entryId) {
     const next = loadReviews().filter((row) => String(row.sourceEntryId || "") !== String(entryId || ""));
     saveReviews(next);
+    void deleteReviewEntryFromServer(entryId);
   }
 
   function renderLedgerStatus() {
@@ -316,6 +407,7 @@
   function removeLedgerEntryById(entryId) {
     const next = loadLedger().filter((r) => r.entryId !== entryId);
     saveLedger(next);
+    void deleteLedgerEntryFromServer(entryId);
     removeReviewBySourceEntryId(entryId);
   }
 
@@ -719,6 +811,10 @@
 
   locationDetailInput?.addEventListener("click", () => {
     openPostcodeSearch();
+  });
+
+  void hydrateStoredDataFromServer().then(() => {
+    renderLedgerStatus();
   });
 
   btnReset.addEventListener("click", () => {
